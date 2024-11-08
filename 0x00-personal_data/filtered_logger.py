@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""" filter datum """
+"""Filtering log messages."""
 import re
 import logging
 from typing import List
@@ -11,18 +11,19 @@ PII_FIELDS = ("name", "email", "phone", "ssn", "password")
 
 
 class RedactingFormatter(logging.Formatter):
-    """ Redacting Formatter class
-        """
+    """Redacting Formatter class."""
 
     REDACTION = "***"
     FORMAT = "[HOLBERTON] %(name)s %(levelname)s %(asctime)-15s: %(message)s"
     SEPARATOR = ";"
 
-    def __init__(self, fields: List[str] = None):
+    def __init__(self, fields: List[str] = None) -> None:
+        """Initialize Redacting Formatter."""
         super(RedactingFormatter, self).__init__(self.FORMAT)
         self.fields = fields or PII_FIELDS
 
     def format(self, record: logging.LogRecord) -> str:
+        """Format log records."""
         message = super().format(record)
         return filter_datum(self.fields, self.REDACTION, message, (
             self.SEPARATOR)
@@ -31,7 +32,7 @@ class RedactingFormatter(logging.Formatter):
 
 def filter_datum(fields: List[str], redaction: str, message: str,
                  separator: str) -> str:
-    """ Returns the log message obfuscated
+    """Return the log message obfuscated.
 
     Args:
         fields: a list of strings representing all fields to obfuscate
@@ -49,7 +50,7 @@ def filter_datum(fields: List[str], redaction: str, message: str,
 
 
 def get_logger() -> logging.Logger:
-    """ Returns a logging.Logger object
+    """Return a logging.Logger object.
 
     Returns:
         logging.Logger object
@@ -66,7 +67,7 @@ def get_logger() -> logging.Logger:
 
 
 def get_db() -> mysql.connector.connection.MySQLConnection:
-    """ Returns a connector to the database
+    """Return a connector to the database.
 
     Returns:
         mysql.connector.connection.MySQLConnection object
@@ -82,3 +83,26 @@ def get_db() -> mysql.connector.connection.MySQLConnection:
         host=host,
         database=db_name
     )
+
+
+def main() -> None:
+    """Obtain a database connection and retrieve all rows in the users table.
+    """
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM users;")
+    fields = [field[0] for field in cursor.description]
+    logger = get_logger()
+
+    for row in cursor:
+        message = ''
+        for i, value in enumerate(row):
+            message += f'{fields[i]}={value}; '
+        logger.info(message.strip())
+
+    cursor.close()
+    db.close()
+
+
+if __name__ == "__main__":
+    main()
