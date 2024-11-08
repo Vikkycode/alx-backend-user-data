@@ -1,7 +1,30 @@
 #!/usr/bin/env python3
 """ filter datum """
 import re
+import logging
 from typing import List
+
+
+PII_FIELDS = ("name", "email", "phone", "ssn", "password")
+
+
+class RedactingFormatter(logging.Formatter):
+    """ Redacting Formatter class
+        """
+
+    REDACTION = "***"
+    FORMAT = "[HOLBERTON] %(name)s %(levelname)s %(asctime)-15s: %(message)s"
+    SEPARATOR = ";"
+
+    def __init__(self, fields: List[str] = None):
+        super(RedactingFormatter, self).__init__(self.FORMAT)
+        self.fields = fields or PII_FIELDS
+
+    def format(self, record: logging.LogRecord) -> str:
+        message = super().format(record)
+        return filter_datum(self.fields, self.REDACTION, message, (
+            self.SEPARATOR)
+        )
 
 
 def filter_datum(fields: List[str], redaction: str, message: str,
