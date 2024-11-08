@@ -3,6 +3,8 @@
 import re
 import logging
 from typing import List
+import mysql.connector
+import os
 
 
 PII_FIELDS = ("name", "email", "phone", "ssn", "password")
@@ -44,3 +46,20 @@ def filter_datum(fields: List[str], redaction: str, message: str,
     regex_fields = "|".join(fields)
     regex = rf"(?<=[{separator}])({regex_fields})=.*?(?=[{separator}]|$)"
     return re.sub(regex, rf"\1={redaction}", message)
+
+
+def get_logger() -> logging.Logger:
+    """ Returns a logging.Logger object
+
+    Returns:
+        logging.Logger object
+    """
+    logger = logging.getLogger("user_data")
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setFormatter(RedactingFormatter(PII_FIELDS))
+    logger.addHandler(stream_handler)
+
+    return logger
