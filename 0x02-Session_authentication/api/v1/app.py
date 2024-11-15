@@ -5,8 +5,8 @@ Route module for the API
 from os import getenv
 from api.v1.views import app_views
 from flask import Flask, jsonify, abort, request
-from flask_cors import (CORS, cross_origin) # type: ignore
-from api.v1.auth.auth import Auth # type: ignore
+from flask_cors import (CORS, cross_origin)
+from api.v1.auth.auth import Auth
 
 app = Flask(__name__)
 app.register_blueprint(app_views)
@@ -14,10 +14,10 @@ CORS(app, resources={r"/api/v1/*": {"origins": "*"}})
 auth = None
 
 if getenv("AUTH_TYPE") == "auth":
-    from api.v1.auth.auth import Auth # type: ignore
+    from api.v1.auth.auth import Auth
     auth = Auth()
 elif getenv("AUTH_TYPE") == "basic_auth":
-    from api.v1.auth.basic_auth import BasicAuth # type: ignore
+    from api.v1.auth.basic_auth import BasicAuth
     auth = BasicAuth()
 
 
@@ -27,23 +27,24 @@ def not_found(error) -> str:
     """
     return jsonify({"error": "Not found"}), 404
 
+
 @app.before_request
 def before_request():
     """Before request handler."""
     if auth:
-        excluded_paths = ['/api/v1/status/', '/api/v1/unauthorized/', '/api/v1/forbidden/']
+        excluded_paths = (
+            ['/api/v1/status/', '/api/v1/unauthorized/', '/api/v1/forbidden/']
+        )
         if auth.require_auth(request.path, excluded_paths):
-            if not auth.authorization_header(request) and not auth.session_cookie(request):
+            if not auth.authorization_header(request) and not \
+                    auth.session_cookie(request):
                 abort(401)
             if not auth.current_user(request):
                 abort(403)
         request.current_user = auth.current_user(request)
 
 
-
 if __name__ == "__main__":
     host = getenv("API_HOST", "0.0.0.0")
     port = getenv("API_PORT", "5000")
     app.run(host=host, port=port)
-
-

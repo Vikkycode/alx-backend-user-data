@@ -30,7 +30,6 @@ def get_user(user_id):
     return jsonify(user.to_json()), 200
 
 
-
 @app_views.route('/users/<user_id>', methods=['DELETE'], strict_slashes=False)
 def delete_user(user_id):
     """Deletes a User object"""
@@ -41,7 +40,6 @@ def delete_user(user_id):
     user.remove()
 
     return jsonify({}), 200
-
 
 
 @app_views.route('/users', methods=['POST'], strict_slashes=False)
@@ -74,7 +72,6 @@ def update_user(user_id):
     rj = request.get_json()
     if rj is None:
         abort(400, description="Not a JSON")
-
 
     for key, value in rj.items():
         if key != "id" and key != "email" and key != "created_at" and\
