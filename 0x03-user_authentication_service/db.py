@@ -36,7 +36,7 @@ class DB:
         Adds a new user to the database.
 
         Args:
-            email (str): The user's email address.
+            email (str): The user's emails address.
             hashed_password (str): The user's hashed password.
 
         Returns:
