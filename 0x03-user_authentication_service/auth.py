@@ -5,20 +5,23 @@ from db import DB, NoResultFound
 from user import User
 import bcrypt
 import os
+import uuid  # Import the uuid module
+
 
 def _hash_password(password: str) -> bytes:
-    """Hashes a given password using bcrypt.
-
-    Args:
-        password (str): The password to hash.
-
-    Returns:
-        bytes: The bcrypt hash of the password.
-    """
+    """Hashes a given password using bcrypt."""
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
     return hashed_password
 
+
+def _generate_uuid():
+    """Generates a new UUID.
+
+    Returns:
+         A string representation of the UUID.
+    """
+    return str(uuid.uuid4())
 
 
 class Auth:
@@ -30,31 +33,24 @@ class Auth:
         self._db = DB()
 
     def register_user(self, email: str, password: str) -> User:
-        """Registers a new user.
-
-        Args:
-            email: The user's email address.
-            password: The user's password.
-
-        Returns:
-            The newly created User object.
-
-        Raises:
-            ValueError: If a user with the given email already exists.
-        """
+        """Registers a new user."""
         try:
-            # Check if user already exists
             self._db.find_user_by(email=email)
             raise ValueError(f"User {email} already exists")
         except NoResultFound:
-            # Hash the password
             hashed_password = _hash_password(password)
-
-            # Create and save the user
             user = self._db.add_user(email, hashed_password)
             return user
 
-
-
+    def valid_login(self, email: str, password: str) -> bool:
+        """Checks if the provided email and password match a registered user."""
+        try:
+            user = self._db.find_user_by(email=email)
+            if bcrypt.checkpw(password.encode('utf-8'), user.hashed_password):
+                return True
+            else:
+                return False
+        except NoResultFound:
+            return False
 
 
