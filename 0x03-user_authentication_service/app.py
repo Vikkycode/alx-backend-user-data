@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Basic Flask app
 """
-from flask import Flask, jsonify, make_response, request, abort
+from flask import Flask, jsonify, make_response, redirect, request, abort
 from auth import Auth
 
 app = Flask(__name__)
@@ -64,6 +64,23 @@ def login() -> str:
     response.set_cookie("session_id", session_id)
     # Explicit 200 status code
     return response, 200
+
+
+@app.route("/sessions", methods=['DELETE'], strict_slashes=False)
+def logout():
+    """Handles DELETE requests to /sessions for user logout.
+
+    Logs the user out and redirects to the home page.
+    """
+    session_id = request.cookies.get("session_id")
+    user = AUTH.get_user_from_session_id(session_id)
+
+    if not user:
+        abort(403)  # Forbidden if no user found for the session ID
+
+    AUTH.destroy_session(user.id)
+    return redirect("/", code=302)
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port="5000")
