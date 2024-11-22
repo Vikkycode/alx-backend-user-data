@@ -43,7 +43,9 @@ class Auth:
             return user
 
     def valid_login(self, email: str, password: str) -> bool:
-        """Checks if the provided email and password match a registered user."""
+        """Checks if the provided email and
+        password match a registered user.
+        """
         try:
             user = self._db.find_user_by(email=email)
             if bcrypt.checkpw(password.encode('utf-8'), user.hashed_password):
@@ -52,8 +54,7 @@ class Auth:
                 return False
         except NoResultFound:
             return False
-    
-    
+
     def create_session(self, email: str) -> str | None:
         """Creates a new session for the user with the given email.
 
@@ -74,19 +75,32 @@ class Auth:
 
 
 def get_user_from_session_id(self, session_id: str) -> User | None:
-        """Retrieves a user based on the given session ID.
+    """Retrieves a user based on the given session ID.
 
-        Args:
-            session_id: The session ID to search for.
+    Args:
+        session_id: The session ID to search for.
 
-        Returns:
-            The User object if found, otherwise None.
-        """
-        if session_id is None:
-            return None
+    Returns:
+        The User object if found, otherwise None.
+    """
+    if session_id is None:
+        return None
 
         try:
             user = self._db.find_user_by(session_id=session_id)
             return user
         except NoResultFound:
             return None
+
+
+def destroy_session(self, user_id: int) -> None:
+    """Destroys the session for the user with the given ID.
+
+    Args:
+            user_id: The ID of the user whose session should be destroyed.
+    """
+    try:
+        self._db.update_user(user_id, session_id=None)
+    except NoResultFound:
+        # User not found, nothing to do. Error is already being caught
+        pass
